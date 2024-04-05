@@ -1,0 +1,118 @@
+//creacion de proyecto
+//bibliotecas que ayudaran a la conexion de base de datos
+#include <Windows.h>
+#include <sql.h>
+#include <sqlext.h>
+#include <iostream>
+
+using namespace std;
+int main() {
+//este codigo sirve para  el ambiente 
+	SQLHENV hEnv;
+//este codigo es la conexion con la base de datos 
+	SQLHDBC hDbc;
+//este sirve para retornar los queri
+	SQLRETURN ret;
+//sirve para asignar el identificador del entorno a trabajar
+	ret = SQLAllocHandle(SQL_HANDLE_ENV, SQL_NULL_HANDLE, &hEnv);
+	ret = SQLSetEnvAttr(hEnv, SQL_ATTR_ODBC_VERSION, (SQLPOINTER)SQL_OV_ODBC3, 0);
+
+	ret = SQLAllocHandle(SQL_HANDLE_DBC, hEnv, &hDbc);
+// codigo para realizar la conexion de la base de datos
+	ret = SQLConnect(hDbc, (SQLWCHAR*)L"sqlexpres", SQL_NTS, (SQLWCHAR*)L"USERNAME", SQL_NTS, (SQLWCHAR*)L"PASSWORD", SQL_NTS);
+ 
+	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO) {
+		cout << "Se conecto la base de datos exitosamente." << endl;
+
+		SQLHSTMT hStmt;
+		ret = SQLAllocHandle(SQL_HANDLE_STMT, hDbc, &hStmt);
+
+	//codigo para llamar la base de datos
+		ret = SQLExecDirect(hStmt, (SQLWCHAR*)L"SELECT * FROM Empleado", SQL_NTS);
+		if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO) {
+			SQLCHAR ID_empleado[9];
+			SQLCHAR Nombre[40];
+			SQLCHAR Apellido_pat[40];
+			SQLCHAR Apellido_mat[40];
+			SQLCHAR RFC[13];
+			SQLCHAR id_centro[40];
+			SQLCHAR contraseña_empl[15];
+			SQLCHAR puesto[40];
+			SQLCHAR descripcion_puesto[40];
+			SQLCHAR fecha_cumpleano[50];
+
+			cout << "+-------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+			cout << "| Empleado  |" << "|  Nombre + Apellidos      |" << "|  fecha nacimiento  |" << "|    RFC    |" << "|id centro|" << "|  contraseña empleado  |" << "|  puesto  |" << "|  descripcion  |" << endl;
+			cout << "+-------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+			while (SQLFetch(hStmt) == SQL_SUCCESS) {
+				SQLGetData(hStmt, 1, SQL_C_CHAR, ID_empleado, sizeof(ID_empleado), NULL);
+				SQLGetData(hStmt, 2, SQL_C_CHAR, Nombre, sizeof(Nombre), NULL);
+				SQLGetData(hStmt, 3, SQL_C_CHAR, Apellido_pat, sizeof(Apellido_pat), NULL);
+				SQLGetData(hStmt, 4, SQL_C_CHAR, Apellido_mat, sizeof(Apellido_mat), NULL);
+				SQLGetData(hStmt, 5, SQL_C_CHAR, RFC, sizeof(RFC), NULL);
+				SQLGetData(hStmt, 6, SQL_C_CHAR, id_centro, sizeof(id_centro), NULL);
+				SQLGetData(hStmt, 7, SQL_C_CHAR, contraseña_empl, sizeof(contraseña_empl), NULL);
+				SQLGetData(hStmt, 8, SQL_C_CHAR, puesto, sizeof(puesto), NULL);
+				SQLGetData(hStmt, 9, SQL_C_CHAR, descripcion_puesto, sizeof(descripcion_puesto), NULL);
+				SQLGetData(hStmt, 10, SQL_C_CHAR, fecha_cumpleano, sizeof(fecha_cumpleano), NULL);
+
+				cout << "|  " << ID_empleado << " || " << Nombre << " " << Apellido_pat << " " << Apellido_mat << "         " << fecha_cumpleano << "           " << RFC << "     " << id_centro << "  " << contraseña_empl << "            " << puesto << "       " << descripcion_puesto << "|" << endl;
+				cout << "+-------------------------------------------------------------------------------------------------------------------------------------------+" << endl;
+			}
+		}
+		SQLFreeHandle(SQL_HANDLE_STMT, hStmt);
+	}
+ //aqui retorna si llega a fallar la conexion de la base de datos
+	else {
+		cout << "fallo la conexion a la base de datos." << endl;
+	}
+
+	/*SQLHSTMT hStmt;
+	ret = SQLAllocHandle(SQL_HANDLE_STMT, hDbc, &hStmt);
+	ret = SQLExecDirect(hStmt, (SQLWCHAR*)L"SELECT * FROM Sucursal", SQL_NTS);
+	if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO) {
+		SQLCHAR Id_centro[9];
+		SQLCHAR Nombre_centro[40];
+		SQLCHAR Nombre_ciudad[40];
+
+		cout << "+------------------------------------------------------------+" << endl;
+		cout << "|  ID_centro   " <<"||" << "  Nombre del centro" <<"||" << "  Nombre de la ciudad  |" << endl;
+		cout << "+------------------------------------------------------------+" << endl;
+
+		while (SQLFetch(hStmt) == SQL_SUCCESS) {
+			SQLGetData(hStmt, 1, SQL_C_CHAR, Id_centro, sizeof(Id_centro), NULL);
+			SQLGetData(hStmt, 2, SQL_C_CHAR, Nombre_centro, sizeof(Nombre_centro), NULL);
+			SQLGetData(hStmt, 3, SQL_C_CHAR, Nombre_ciudad, sizeof(Nombre_ciudad), NULL);
+
+			cout <<"|     " << Id_centro <<" ||     " << Nombre_centro<<"         " << Nombre_ciudad <<"     |" << endl;
+			cout << "+------------------------------------------------------------+" << endl;
+		}
+		SQLHSTMT hStmt; 
+		ret = SQLAllocHandle(SQL_HANDLE_STMT, hDbc, &hStmt); 
+		ret = SQLExecDirect(hStmt, (SQLWCHAR*)L"SELECT * FROM Directivo", SQL_NTS); 
+		if (ret == SQL_SUCCESS || ret == SQL_SUCCESS_WITH_INFO) { 
+			INT puesto_trabajo; 
+			SQLCHAR ID_empleado[9]; 
+			SQLCHAR Id_sucursal[9];  
+			SQLCHAR prestacion_combs[40]; 
+			SQLCHAR ciudad[40]; 
+
+			while (SQLFetch(hStmt) == SQL_SUCCESS) { 
+				SQLGetData(hStmt, 1, SQL_C_LONG, &puesto_trabajo, sizeof(puesto_trabajo), NULL); 
+				SQLGetData(hStmt, 2, SQL_C_CHAR, ID_empleado, sizeof(ID_empleado), NULL); 
+				SQLGetData(hStmt, 3, SQL_C_CHAR, Id_sucursal, sizeof(Id_sucursal), NULL); 
+				SQLGetData(hStmt, 4, SQL_C_CHAR, prestacion_combs , sizeof(prestacion_combs), NULL);
+				SQLGetData(hStmt, 5, SQL_C_CHAR, ciudad , sizeof(ciudad ), NULL);
+
+				cout << puesto_trabajo<<"  " << ID_empleado <<"  " << Id_sucursal << prestacion_combs<<"  " << ciudad << endl;
+			}
+		}
+	}
+	else {
+		cout << "fallo la conexion a la base de datos." << endl;
+	}*/
+	SQLDisconnect(hDbc); 
+	SQLFreeHandle(SQL_HANDLE_DBC, hDbc); 
+	SQLFreeHandle(SQL_HANDLE_ENV, hEnv); 
+	return 0;
+}
